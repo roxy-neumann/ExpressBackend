@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventPathParameters } from "aws-lambda";
+// import { APIGatewayProxyEventPathParameters } from "aws-lambda";
 
 export class Path {
     private parts: string[];
@@ -11,7 +11,7 @@ export class Path {
     }
 
     private pathParams = null;
-    public get PathParams(): APIGatewayProxyEventPathParameters {
+    public get PathParams() {
         return this.pathParams;
     }
 
@@ -55,5 +55,22 @@ export class Operation {
 
     constructor(private operationName: string) {
         this.parts = operationName.split('.');
+    }
+
+    public static extractOperations(openApiJson) {
+        const operationNames: string[] = [];
+    
+        for (const path in openApiJson.paths) {
+            const pathObj = openApiJson.paths[path];
+            for (const method in pathObj) {
+                const operation = pathObj[method];
+                if (operation.operationId) {
+                    operationNames.push(operation.operationId);
+                }
+            }
+        }
+    
+        console.log('Operations:', operationNames);
+        return operationNames;
     }
 }
