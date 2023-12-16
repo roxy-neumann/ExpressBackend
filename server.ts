@@ -11,7 +11,7 @@ import { Operation, Path } from './api_path';
 
 const srvFolder = process.argv[2];
 const port = process.argv[3] || 4001;
-const openApiFilePath = path.join(srvFolder, 'swagger', 'oas30.json'); 
+const openApiFilePath = path.join(srvFolder, 'swagger', 'oas30_gen.json'); 
 const openApiJson = require(openApiFilePath); 
 openApiJson.servers.unshift({url: `http://localhost:${port}`}); // add local server
 
