@@ -11,9 +11,7 @@
 
     "start_ElX_distr": "ts-node server.ts 'D:\\dev\\_Projects\\ElementX\\distr-srv' 4040 dev",
     "start_ReactApp_User": "ts-node server.ts 'D:\\dev\\_Projects\\ReactApp\\users-srv' 4050 dev",
-    "start_ReactApp_User_local": "ts-node server.ts 'D:\\dev\\_Projects\\ReactApp\\users-srv' 4050 local",
-
-    "start": "ts-node server.ts 'D:\\dev\\_Projects\\ReactApp\\users-srv' dev"
+    "start_ReactApp_User_local": "ts-node server.ts 'D:\\dev\\_Projects\\ReactApp\\users-srv' 4050 local"
   },
   "keywords": [],
   "author": "",
