@@ -31,12 +31,18 @@ if not defined env (
     set /p env="[e.g. test-1]=> "
 )
 
+set nodemon=%5
+set swagger=%6
 
 echo ::: Initial Parameters :::::::::::::::::::::::::::::::::::
 echo Service Folder: %service_path%
 echo Port: %port%
 echo Env: %env%
+echo Nodemon: %nodemon%
+echo Swagger re-generation: %swagger%
 
-REM start cmd /k "npm run run_server"
-ts-node server.ts %service_path% %port% %env%
-rem node dist/server.js %service_path% %port% %env%
+if not defined nodemon (
+	ts-node server.ts %service_path% %port% %env% %swagger%
+) else (
+    nodemon -w %service_path%\src -x ts-node server.ts %service_path% %port% %env% %swagger%
+)

@@ -5,9 +5,12 @@
   "main": "server.js",
   "scripts": {
     "compile": "rm -rf dist/* && tsc",
+    "___start_AnyPod___" : "--- Commands for simple proxy API start for AnyPodcast ----------------------------------------------",
     "start_AnyPod_user": "ts-node server.ts 'D:\\dev\\_Projects\\AnyPodcast\\srv-users' 4060 dev",
     "start_AnyPod_pods": "ts-node server.ts 'D:\\dev\\_Projects\\AnyPodcast\\srv-podcasts' 4061 dev",
     "start_AnyPod_eps": "ts-node server.ts 'D:\\dev\\_Projects\\AnyPodcast\\BE-episodes' 4062 dev",
+    "___start_AnyPod_dev___" : "--- Commands to run proxy API start for AnyPodcast under nodemon --------------------------------",
+    "start_AnyPod_eps_dev": "nodemon --exec ts-node server.ts 'D:\\dev\\_Projects\\AnyPodcast\\BE-episodes' 4062 dev true",
 
     "start_ElX_distr": "ts-node server.ts 'D:\\dev\\_Projects\\ElementX\\distr-srv' 4040 dev",
     "start_ReactApp_User": "ts-node server.ts 'D:\\dev\\_Projects\\ReactApp\\users-srv' 4050 dev",
@@ -22,14 +25,18 @@
     "dotenv": "^16.3.1",
     "mongoose": "^7.5.3",
     "openapi-backend": "^5.9.2",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
+    "typescript-json-schema": "^0.62.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.122",
     "@types/cors": "^2.8.14",
     "@types/express": "^4.17.17",
+    "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.4",
     "express": "^4.18.2",
+    "nodemon": "^3.0.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   }
