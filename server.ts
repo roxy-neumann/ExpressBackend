@@ -29,7 +29,7 @@ if (swaggerRegen) {
     console.log(resp);
 }
 // ::: import swagger file from service's folder :::
-const openApiFilePath = path.join(srvFolder, 'swagger', 'oas30_gen.json'); 
+const openApiFilePath = path.join(srvFolder, 'swagger', 'oas30_templ.json'); 
 const openApiJson = require(openApiFilePath); 
 openApiJson.servers.unshift({url: `http://localhost:${port}`}); // add local server to enable local runs from UI
 

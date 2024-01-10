@@ -252,7 +252,7 @@ export class SwaggerExport {
         swaggerSpec["paths"][`/${mainEntity.toLowerCase()}`] = mainPath;
         swaggerSpec["paths"][`/${mainEntity.toLowerCase()}/{id}`] = idPath;
 
-        const fileNameSwagger = path.join(this.destinationDir, this.swaggerFolderName, "oas30_gen.json");
+        const fileNameSwagger = path.join(this.destinationDir, this.swaggerFolderName, "oas30_templ.json");
         fs.writeFileSync(fileNameSwagger, JSON.stringify(swaggerSpec));
         return `Swagger JSON generated in ${fileNameSwagger}`;
     }
