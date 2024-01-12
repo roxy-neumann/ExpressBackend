@@ -41,9 +41,18 @@ echo Env: %env%
 echo Nodemon: %nodemon%
 echo Swagger re-generation: %swagger%
 
-@start /B cmd /c "open_url.bat %port%"
+if not defined swagger (
+    set "watch_option=-w %service_path%\src"
+    set delay=5
+) else (
+    set "watch_option="
+    set delay=10
+)
+echo Delay: %delay%
+
+@start /B cmd /c "open_url.bat %port% %delay%"
 if not defined nodemon (
 	ts-node server.ts %service_path% %port% %env% %swagger%
 ) else (
-    nodemon -w %service_path%\src -w %service_path%\swagger -x ts-node server.ts %service_path% %port% %env% %swagger%
+    nodemon -w %service_path%\src %watch_option% -x ts-node server.ts %service_path% %port% %env% %swagger%
 )
