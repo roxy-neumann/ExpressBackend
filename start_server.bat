@@ -41,9 +41,12 @@ echo Env: %env%
 echo Nodemon: %nodemon%
 echo Swagger re-generation: %swagger%
 
-@start /B cmd /c "open_url.bat %port%"
 if not defined nodemon (
 	ts-node server.ts %service_path% %port% %env% %swagger%
 ) else (
     nodemon -w %service_path%\src -w %service_path%\swagger -x ts-node server.ts %service_path% %port% %env% %swagger%
+
+    @REM start /min cmd /c "nodemon -w %service_path%\src -w %service_path%\swagger -x ts-node server.ts %service_path% %port% %env% %swagger%"
+    @REM timeout /t 5 /nobreak >nul
+    @REM start "" "http://localhost:%port%/api-docs"
 )
