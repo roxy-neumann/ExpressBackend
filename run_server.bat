@@ -42,7 +42,7 @@ echo Nodemon: %nodemon%
 echo Swagger re-generation: %swagger%
 
 if not defined swagger (
-    set "watch_option=-w %service_path%\src"
+    set "watch_option=-w %service_path%\swagger"
     set delay=5
 ) else (
     set "watch_option="
