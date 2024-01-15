@@ -1,0 +1,253 @@
+.swagger-ui {
+    background-color: #323639;
+    color: #ffffff;
+}
+
+/* The top bar containing the Swagger logo and title */
+.swagger-ui .topbar {
+    background-color: #000000;
+    border-bottom: 2px solid #505759;
+}
+
+/* Titles */
+.swagger-ui .title {
+    color: #ffffff;
+}
+
+/* Section titles and endpoints */
+.swagger-ui .opblock-tag,
+.swagger-ui .opblock-summary-method,
+.swagger-ui .opblock-summary {
+    background-color: #505759;
+    color: #ffffff;
+}
+
+/* Descriptions and summaries */
+.swagger-ui .description,
+.swagger-ui .markdown,
+.swagger-ui .opblock-description-wrapper {
+    color: #ffffff;
+}
+
+/* Parameter and response boxes */
+.swagger-ui .parameters,
+.swagger-ui .responses {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Request and response headers */
+.swagger-ui .request,
+.swagger-ui .response {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Code blocks */
+.swagger-ui .highlight-code {
+    background-color: #333740;
+    color: #ffffff;
+}
+
+/* Try it out button */
+.swagger-ui .try-out__btn {
+    background-color: #505759;
+    color: #ffffff;
+}
+
+/* Cancel button */
+.swagger-ui .btn.cancel {
+    background-color: #505759;
+    color: #ffffff;
+}
+
+/* Execute button */
+.swagger-ui .execute {
+    background-color: #4a9;
+    color: #ffffff;
+}
+
+/* Model schema boxes */
+.swagger-ui .model-box {
+    background-color: #42474a;
+    color: #ffffff;
+}
+.swagger-ui .model-title {
+    background-color: #333740;
+    color: #ffffff;
+}
+.swagger-ui .models-control {
+    color: #ffffff;
+}
+/* Response content-type selector */
+.swagger-ui .response-col_description__inner div.select-container {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Parameter names and descriptions */
+.swagger-ui .parameter__name,
+.swagger-ui .parameter__type {
+    color: #ffffff;
+}
+
+/* Dropdown menus */
+.swagger-ui .scheme-container {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Headers in the response and request body */
+.swagger-ui .response-headers h4,
+.swagger-ui .request-headers h4 {
+    color: #ffffff;
+}
+
+/* Table of contents */
+.swagger-ui .table-of-contents {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Links */
+.swagger-ui a {
+    color: #59a6ff;
+}
+
+/* Authentication button */
+.swagger-ui .auth-wrapper .authorize {
+    background-color: #505759;
+    color: #ffffff;
+}
+
+/* Operation ID */
+.swagger-ui .opblock .opblock-summary-operation-id {
+    color: #ffffff;
+}
+
+/* Server selector dropdown */
+.swagger-ui .servers select {
+    background-color: #505759;
+    color: #ffffff;
+}
+
+/* Headers in the documentation */
+.swagger-ui .opblock-tag-section h4 {
+    color: #ffffff;
+}
+
+/* Text in input fields */
+.swagger-ui .opblock .parameters-col_description input[type='text'] {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Dropdown selectors in parameters */
+.swagger-ui .parameters .parameter__type select {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Description text */
+.swagger-ui .markdown p,
+.swagger-ui .opblock-description-wrapper p {
+    color: #ffffff;
+}
+
+/* Path parameter styling */
+.swagger-ui .path-params .param {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Response description */
+.swagger-ui .response-col_description {
+    color: #ffffff;
+}
+
+/* Endpoint path */
+.swagger-ui .opblock-summary-path {
+    color: #ffffff;
+}
+
+/* Required field indicator */
+.swagger-ui .parameter__name.required:after {
+    color: #ff5722;
+}
+
+/* 'Try it out' and 'Reset' button */
+.swagger-ui .try-out__btn,
+.swagger-ui .opblock .btn-reset {
+    background-color: #505759;
+    color: #ffffff;
+}
+
+/* Info section styling */
+.swagger-ui .info .title {
+    background-color: #333740;
+    color: #ffffff;
+}
+.swagger-ui .info p {
+    color: #ffffff;
+}
+.swagger-ui .description {
+    color: #ffffff;
+}
+
+/* General styling for select elements */
+.swagger-ui select {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Schemas section styling */
+.swagger-ui .model {
+    background-color: #333740;
+    color: #ffffff;
+}
+
+/* Schemas section description */
+.swagger-ui .model .description {
+    color: #ffffff;
+}
+
+/* Select elements in header */
+.swagger-ui .topbar select {
+    background-color: #505759;
+    color: #ffffff;
+}
+
+/* 'Explore' button in topbar */
+.swagger-ui .topbar .download-url-button {
+    background-color: #505759;
+    color: #ffffff;
+}
+
+/* Request body section */
+.swagger-ui .request-body {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Headers section */
+.swagger-ui .headers {
+    background-color: #42474a;
+    color: #ffffff;
+}
+
+/* Example section in responses */
+.swagger-ui .example {
+    background-color: #333740;
+    color: #ffffff;
+}
+
+/* Response class description */
+.swagger-ui .response-class .description {
+    color: #ffffff;
+}
+
+/* Security definitions */
+.swagger-ui .security-definitions {
+    background-color: #333740;
+    color: #ffffff;
+}

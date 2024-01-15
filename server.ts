@@ -34,9 +34,9 @@ if (swaggerRegen) {
     console.log(resp);
 }
 // ::: import swagger file from service's folder :::
-const openApiFilePath = path.join(srvFolder, 'swagger', 'oas30_templ.json'); 
-const openApiJson = require(openApiFilePath); 
-openApiJson.servers.unshift({url: `http://localhost:${port}`}); // add local server to enable local runs from UI
+const openApiFilePath = path.join(srvFolder, 'swagger', 'oas30_templ.json');
+const openApiJson = require(openApiFilePath);
+openApiJson.servers.unshift({ url: `http://localhost:${port}` }); // add local server to enable local runs from UI
 
 // ::: generate basic API backend based on included swagger file ::: 
 const api = new OpenAPIBackend({ definition: openApiJson });
@@ -68,7 +68,11 @@ api.init();
 
 const server = express();
 server.use(cors());
-server.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJson,{customSiteTitle: `${packageJson.project} | ${packageJson.name}`}));
+server.use(express.static('public'));  // serve custom CSS
+server.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJson, { 
+    customSiteTitle: `${packageJson.project} | ${packageJson.name}`,
+    customCssUrl: '/swagger-dark.css'
+}));
 server.use(express.json());
 server.use((req, res) => {
     api.handleRequest(req as Request, req, res);
