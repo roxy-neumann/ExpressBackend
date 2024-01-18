@@ -166,7 +166,10 @@
 }
 
 /* Endpoint path */
-.swagger-ui .opblock-summary-path {
+.swagger-ui .opblock-summary-path a {
+    color: #ffffff;
+}
+.swagger-ui .opblock-summary-path a.nostyle {
     color: #ffffff;
 }
 

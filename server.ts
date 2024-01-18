@@ -10,7 +10,6 @@ import merge from 'deepmerge';
 import * as apiRequestEmpty from './API_Event_empty.json';
 import { Operation, Path } from './api_path';
 import { SwaggerExport } from './swagger_gen';
-const { exec } = require('child_process');
 
 // ::: Parse command line parameters (starting from #2, first two are system reserved) :::
 const srvFolder = process.argv[2];
@@ -19,7 +18,7 @@ const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
 
 // ::: import requered environment variables :::
-require('./dotenv_apply').load(srvEnv, srvFolder); // load env
+const envVars = require('./dotenv_apply').load(srvEnv, srvFolder); // load env
 
 const jsonStr = fs.readFileSync(path.join(srvFolder, 'package.json'));
 const packageJson = JSON.parse(jsonStr.toString());
@@ -69,7 +68,7 @@ api.init();
 const server = express();
 server.use(cors());
 server.use(express.static('public'));  // serve custom CSS
-server.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJson, { 
+server.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJson, {
     customSiteTitle: `${packageJson.project} | ${packageJson.name}`,
     customCssUrl: '/swagger-dark.css'
 }));
@@ -80,23 +79,16 @@ server.use((req, res) => {
 
 const mainUrl = `http://localhost:${port}`;
 const mainUrlSwagger = `http://localhost:${port}/api-docs`;
-let browserOpened = false;
 server.listen(port, () => {
     console.log("::: Middleware API for AWS Lambda microservice ::::::::::::::::::::::::: Oxymoron Tech ::: 2024 :::");
-    console.log(`Running API for [${packageJson.project} | ${packageJson.name}] at ${srvFolder}`);
+    const srvDetails = packageJson.project && packageJson.name ? `for [${packageJson.project} | ${packageJson.name}]` : '';
+    console.log(`Running API ${srvDetails} at ${srvFolder}`);
+
+    console.log(`Variables of [${srvEnv}] environment:`);
+    Object.keys(envVars.parsed).forEach((key) => console.log(`${key}: ${envVars.parsed[key]}`));
+
     console.log(`Listening on ${mainUrl}`);
     console.log(`Swagger UI on ${mainUrlSwagger}`);
-    // if (!browserOpened) {
-    // exec(`start ${mainUrlSwagger}`, (error, stdout, stderr) => {
-    //     if (error) {
-    //       console.error(`Error opening browser: ${error}`);
-    //       return;
-    //     }
-    //     console.log(`Opened ${mainUrlSwagger} in your default web browser`);
-    //     browserOpened = true;
-    //   });
-    // }
-    // console.log("::: YOU CAN START TO USE LOCAL API SERVER :::::::::::::::::::::::::::::::::::::::");
 });
 
 /**
