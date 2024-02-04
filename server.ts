@@ -3,7 +3,7 @@ import { OpenAPIBackend } from 'openapi-backend';
 import cors from "cors";
 import type { Context, Request } from 'openapi-backend';
 import swaggerUi from 'swagger-ui-express';
-
+import * as dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import merge from 'deepmerge';
@@ -17,11 +17,22 @@ const port = process.argv[3] || 4001;
 const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
 
-// ::: import requered environment variables :::
-const envVars = require('./dotenv_apply').load(srvEnv, srvFolder); // load env
-
+// ::: Read package info :::
 const jsonStr = fs.readFileSync(path.join(srvFolder, 'package.json'));
 const packageJson = JSON.parse(jsonStr.toString());
+
+// ::: import requered environment variables :::
+// const envVars = require('./dotenv_apply').load(srvEnv, srvFolder);
+let envVars: any = {};
+const envPath = path.join(srvFolder, `.env.${srvEnv}`);
+if (fs.existsSync(envPath)) { // if there is a .env file - use it 
+    const env = dotenv.config({ path: envPath });
+    envVars = env.parsed;
+} else {
+    envVars.DB_NAME = `${packageJson.project}-${srvEnv}`;
+    envVars.DB_TABLE = packageJson.main_entity;
+    Object.keys(envVars).forEach(key => { process.env[key] = envVars[key]; });
+}
 
 // ::: import service's source code ::: 
 const handlerPath = path.join(srvFolder, 'src/index');
@@ -45,9 +56,17 @@ const operationNames: string[] = Operation.extractOperations(openApiJson);
 // ::: register operations extracted from swagger ::: 
 const registerApi = {};
 operationNames.forEach((operationName: string) => {
-    registerApi[operationName] = async (context: Context, request: Request, res: Response) => {
+    registerApi[operationName] = async (context: Context, request: Request, res: Response, data: any) => {
         try {
-            const response = await awsHandler(getAwsRequestEvent(request, context));
+            const event = getAwsRequestEvent(request, context);
+            if (data && data.length) {
+                // Convert rawData to a base64 string
+                 event.body = data.toString('base64');;
+                event.isBase64Encoded = true;
+            }
+            // ::: call service's root handler :::
+            const response = await handlerModule.handler(event);
+
             res.status(response.statusCode).json(JSON.parse(response.body));
         } catch (error) {
             console.error(error);
@@ -56,11 +75,6 @@ operationNames.forEach((operationName: string) => {
     }
 });
 
-// ::: call service's root handler :::
-const awsHandler = async (event) => {
-    const resp = await handlerModule.handler(event);
-    return resp;
-}
 
 api.register(registerApi);
 api.init();
@@ -74,7 +88,21 @@ server.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiJson, {
 }));
 server.use(express.json());
 server.use((req, res) => {
-    api.handleRequest(req as Request, req, res);
+    let rawData = [];
+    req.on('data', (chunk) => {
+        rawData.push(chunk);
+    });
+
+    req.on('end', () => {
+        // Combine all chunks into a single buffer
+        const combinedData = Buffer.concat(rawData);
+
+        // Continue with handling the request using your API logic
+        api.handleRequest(req as Request, req, res, combinedData); // Pass combinedData as needed
+    });
+    if (!req.headers['content-type'].startsWith('multipart/form-data')) {
+        api.handleRequest(req as Request, req, res);
+    }
 });
 
 const mainUrl = `http://localhost:${port}`;
@@ -85,7 +113,7 @@ server.listen(port, () => {
     console.log(`Running API ${srvDetails} at ${srvFolder}`);
 
     console.log(`Variables of [${srvEnv}] environment:`);
-    Object.keys(envVars.parsed).forEach((key) => console.log(`${key}: ${envVars.parsed[key]}`));
+    Object.keys(envVars).forEach((key) => console.log(`${key}: ${envVars[key]}`));
 
     console.log(`Listening on ${mainUrl}`);
     console.log(`Swagger UI on ${mainUrlSwagger}`);
@@ -98,6 +126,7 @@ server.listen(port, () => {
  */
 const getAwsRequestEvent = (request: Request, context: Context) => {
     const apiRequestAws = merge(apiRequestEmpty, {});
+    apiRequestAws.headers["content-type"] = request.headers["content-type"];
 
     apiRequestAws.httpMethod = request.method;
     // apiRequestAws.headers = req.headers;
