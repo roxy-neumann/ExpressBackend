@@ -31,6 +31,7 @@ if (fs.existsSync(envPath)) { // if there is a .env file - use it
 } else {
     envVars.DB_NAME = `${packageJson.project}-${srvEnv}`;
     envVars.DB_TABLE = packageJson.main_entity;
+    envVars.ENV = srvEnv;
     Object.keys(envVars).forEach(key => { process.env[key] = envVars[key]; });
 }
 
@@ -61,7 +62,7 @@ operationNames.forEach((operationName: string) => {
             const event = getAwsRequestEvent(request, context);
             if (data && data.length) {
                 // Convert rawData to a base64 string
-                 event.body = data.toString('base64');;
+                event.body = data.toString('base64');;
                 event.isBase64Encoded = true;
             }
             // ::: call service's root handler :::
@@ -94,13 +95,15 @@ server.use((req, res) => {
     });
 
     req.on('end', () => {
-        // Combine all chunks into a single buffer
-        const combinedData = Buffer.concat(rawData);
+        if (req.headers['content-type']?.startsWith('multipart/form-data')) {
+            // Combine all chunks into a single buffer
+            const combinedData = Buffer.concat(rawData);
 
-        // Continue with handling the request using your API logic
-        api.handleRequest(req as Request, req, res, combinedData); // Pass combinedData as needed
+            // Continue with handling the request using your API logic
+            api.handleRequest(req as Request, req, res, combinedData); // Pass combinedData as needed
+        }
     });
-    if (!req.headers['content-type'].startsWith('multipart/form-data')) {
+    if (!req.headers['content-type']?.startsWith('multipart/form-data')) {
         api.handleRequest(req as Request, req, res);
     }
 });
