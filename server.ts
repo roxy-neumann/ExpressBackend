@@ -84,6 +84,7 @@ if (fs.existsSync(envPath)) {
 	envVars.REGION = region;
 	envVars.BUCKET = `web${shortReg ? `.${shortReg}` : ""}.oxymoron-tech.com`;
 	envVars.BUCKET_PATH = `${UploadFolder}/${packageJson.project}/${process.env.ENV ?? "local"}`;
+    envVars.MONGO_PASS = `WQdmUA82JK2qO5Vq`;
     
 	Object.keys(envVars).forEach((key) => {
 		process.env[key] = envVars[key];
