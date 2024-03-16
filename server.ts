@@ -6,10 +6,9 @@ import swaggerUi from "swagger-ui-express";
 import * as dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
-import merge from "deepmerge";
-import * as apiRequestEmpty from "./API_Event_empty.json";
-import { Operation, Path } from "./api_path";
-import { SwaggerExport } from "./swagger_gen";
+
+import { Operation, Path, getAwsRequestEvent } from "./api_helper";
+import { SwaggerExport } from "./swagger/swagger_gen";
 
 // ::: Parse command line parameters (starting from #2, first two are system reserved) :::
 const srvFolder = process.argv[2];
@@ -18,6 +17,7 @@ const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
 const region = "il-central-1";
 const UploadFolder = "upload";
+dotenv.config();
 // ::: Read package info :::
 const jsonStr = fs.readFileSync(path.join(srvFolder, "package.json"));
 const packageJson = JSON.parse(jsonStr.toString());
@@ -84,7 +84,8 @@ if (fs.existsSync(envPath)) {
 	envVars.REGION = region;
 	envVars.BUCKET = `web${shortReg ? `.${shortReg}` : ""}.oxymoron-tech.com`;
 	envVars.BUCKET_PATH = `${UploadFolder}/${packageJson.project}/${process.env.ENV ?? "local"}`;
-    envVars.MONGO_PASS = `WQdmUA82JK2qO5Vq`;
+    envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
+    envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
     
 	Object.keys(envVars).forEach((key) => {
 		process.env[key] = envVars[key];
@@ -190,27 +191,3 @@ server.listen(port, () => {
 	console.log(`Listening on ${mainUrl}`);
 	console.log(`Swagger UI on ${mainUrlSwagger}`);
 });
-
-/**
- * API standard request convertor to AWS API Gateway event
- * @param request standard api request paramter
- * @param context standard api context paramter
- */
-const getAwsRequestEvent = (request: Request, context: Context) => {
-	const apiRequestAws = merge(apiRequestEmpty, {});
-	apiRequestAws.headers["content-type"] = request.headers["content-type"];
-
-	apiRequestAws.httpMethod = request.method;
-	// apiRequestAws.headers = req.headers;
-	apiRequestAws.path = request.path;
-
-	const pathParts = new Path();
-	pathParts.Parse(context.operation.path, request.path);
-	apiRequestAws.resource = context.operation.path;
-	apiRequestAws.pathParameters = pathParts.PathParams;
-
-	apiRequestAws.queryStringParameters = request.query;
-
-	apiRequestAws.body = JSON.stringify(request.body);
-	return apiRequestAws;
-};

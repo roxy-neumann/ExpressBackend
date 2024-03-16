@@ -1,4 +1,6 @@
-// import { APIGatewayProxyEventPathParameters } from "aws-lambda";
+import type { Context, Request } from "openapi-backend";
+import merge from "deepmerge";
+import * as apiRequestEmpty from "./API_Event_empty.json";
 
 export class Path {
     private parts: string[];
@@ -74,3 +76,27 @@ export class Operation {
         return operationNames;
     }
 }
+
+/**
+ * API standard request convertor to AWS API Gateway event
+ * @param request standard api request paramter
+ * @param context standard api context paramter
+ */
+export const getAwsRequestEvent = (request: Request, context: Context) => {
+	const apiRequestAws = merge(apiRequestEmpty, {});
+	apiRequestAws.headers["content-type"] = request.headers["content-type"];
+
+	apiRequestAws.httpMethod = request.method;
+	// apiRequestAws.headers = req.headers;
+	apiRequestAws.path = request.path;
+
+	const pathParts = new Path();
+	pathParts.Parse(context.operation.path, request.path);
+	apiRequestAws.resource = context.operation.path;
+	apiRequestAws.pathParameters = pathParts.PathParams;
+
+	apiRequestAws.queryStringParameters = request.query;
+
+	apiRequestAws.body = JSON.stringify(request.body);
+	return apiRequestAws;
+};
