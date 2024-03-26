@@ -84,8 +84,10 @@ export class Operation {
  */
 export const getAwsRequestEvent = (request: Request, context: Context) => {
 	const apiRequestAws = merge(apiRequestEmpty, {});
-	apiRequestAws.headers["content-type"] = request.headers["content-type"];
-
+	// apiRequestAws.headers["content-type"] = request.headers["content-type"];
+    for (const [key, value] of Object.entries(request.headers)) {
+        apiRequestAws.headers[key] = value;
+    }
 	apiRequestAws.httpMethod = request.method;
 	// apiRequestAws.headers = req.headers;
 	apiRequestAws.path = request.path;

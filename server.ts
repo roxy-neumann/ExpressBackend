@@ -67,29 +67,28 @@ const regionShort = (region: string) => {
 			return "";
 	}
 };
-// ::: import required environment variables :::
-// const envVars = require('./dotenv_apply').load(srvEnv, srvFolder);
+// ::: Environment variables :::
 let envVars: any = {};
+const shortReg = regionShort(region);
+// ::: Generate default env vars :::
+envVars.DB_NAME = `${packageJson.project}-${srvEnv}`;
+envVars.DB_TABLE = packageJson.main_entity;
+envVars.ENV = srvEnv;
+envVars.REGION = region;
+envVars.BUCKET = `web${shortReg ? `.${shortReg}` : ""}.oxymoron-tech.com`;
+envVars.BUCKET_PATH = `${UploadFolder}/${packageJson.project}/${process.env.ENV ?? "local"}`;
+envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
+envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
+
+Object.keys(envVars).forEach((key) => {
+	process.env[key] = envVars[key];
+});
+
+// ::: if there is a .env file - read it :::
 const envPath = path.join(srvFolder, `.env.${srvEnv}`);
 if (fs.existsSync(envPath)) {
-	// if there is a .env file - use it
 	const env = dotenv.config({ path: envPath });
-	envVars = env.parsed;
-} else {
-	const shortReg = regionShort(region);
-
-	envVars.DB_NAME = `${packageJson.project}-${srvEnv}`;
-	envVars.DB_TABLE = packageJson.main_entity;
-	envVars.ENV = srvEnv;
-	envVars.REGION = region;
-	envVars.BUCKET = `web${shortReg ? `.${shortReg}` : ""}.oxymoron-tech.com`;
-	envVars.BUCKET_PATH = `${UploadFolder}/${packageJson.project}/${process.env.ENV ?? "local"}`;
-    envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
-    envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
-    
-	Object.keys(envVars).forEach((key) => {
-		process.env[key] = envVars[key];
-	});
+	envVars = { ...envVars, ...env.parsed };
 }
 
 // ::: import service's source code :::
@@ -130,7 +129,11 @@ operationNames.forEach((operationName: string) => {
 			// ::: call service's root handler :::
 			const response = await handlerModule.handler(event);
 
-			res.status(response.statusCode).json(JSON.parse(response.body));
+			if (response.headers.hasOwnProperty("Content-Type") && response.headers["Content-Type"] === "application/xml") {
+				res.status(response.statusCode).type("application/xml").send(response.body);
+			} else {
+				res.status(response.statusCode).json(JSON.parse(response.body));
+			}
 		} catch (error) {
 			console.error(error);
 			res.status(500).json({ error: "Internal server error" });
@@ -153,6 +156,9 @@ server.use(
 	})
 );
 server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
+server.use(express.text());
+server.use(express.raw());
 server.use((req, res) => {
 	let rawData = [];
 	req.on("data", (chunk) => {
