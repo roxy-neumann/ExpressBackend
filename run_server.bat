@@ -51,8 +51,8 @@ if not defined swagger (
 echo Delay: %delay%
 
 @start /B cmd /c "open_url.bat %port% %delay%"
-if not defined nodemon (
-	ts-node server.ts %service_path% %port% %env% %swagger%
-) else (
+if "%nodemon%"=="true" (
     nodemon -w %service_path%\src %watch_option% -x ts-node server.ts %service_path% %port% %env% %swagger%
+) else (
+    ts-node server.ts %service_path% %port% %env% %swagger%
 )
