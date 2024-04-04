@@ -15,6 +15,7 @@
 		"start_AnyPod_fileMng_mon": "nodemon --exec ts-node server.ts 'D:\\dev\\_Projects\\AnyPodcast\\BE-file-mng' 4063 local",
 		"start_AnyPod_feeds_mon": "nodemon --exec ts-node server.ts 'D:\\dev\\_Projects\\AnyPodcast\\BE-feeds' 4065 local",
 		"start_DirPod_feeds_mon": "nodemon --exec ts-node server.ts 'E:\\GitHub\\DirectPodcast\\BE-feeds' 4075 local",
+		"start_DirPod_podcasts_mon": "nodemon --exec ts-node server.ts 'E:\\GitHub\\DirectPodcast\\BE-podcasts' 4071 local true",
 		"___start_Casino___": "--- Commands for simple proxy API start for AnyPodcast ----------------------------------------------",
 		"start_Casino_local": "nodemon --exec ts-node server.ts 'D:\\dev\\_Projects\\CasinoVision\\BE' 4071 local",
 		"start_Casino_dev": "nodemon --exec ts-node server.ts 'D:\\dev\\_Projects\\CasinoVision\\BE' 4071 dev",

@@ -91,10 +91,15 @@ export class ModelExport {
     }
     private replaceDefinition(prop: any) {
         if (prop.type === 'array') {
-            const ref = prop.items.$ref.replace('#/definitions/', '');
-            prop.items.$ref = `${this.getRef()}/${ref}`;
+            if (prop.items.$ref) {
+                const ref = prop.items.$ref.replace('#/definitions/', '');
+                prop.items.$ref = `${this.getRef()}/${ref}`;
+            }
+            else {
+
+            }
         } else if (prop.$ref) {
-            prop.$ref = prop.$ref.replace('#/definitions',`${this.getRef()}`);
+            prop.$ref = prop.$ref.replace('#/definitions', `${this.getRef()}`);
             // prop.type = 'object'
         }
     }
