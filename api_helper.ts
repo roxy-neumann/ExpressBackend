@@ -33,8 +33,15 @@ export class Path {
     public Parse(eventResource: string, eventPath: string) {
         this.partsRes = eventResource.replace(/^\/+|\/+$/g, '').split('/');
         this.parts = eventPath.replace(/^\/+|\/+$/g, '').split('/');
-        this.hasPathParam = this.PartRes(2) === '{id}'; // this.eventResource.indexOf('{id}') >= 0;
-        if (this.hasPathParam) this.pathParams = { [this.PartRes(2).replace(/{|}/g, '')]: this.Part(2) };
+        const idStr = '{id}'
+        if (this.partsRes.includes(idStr)) {
+            this.hasPathParam = true;
+            const resName = 'id';
+            const idIndex = this.partsRes.findIndex(r => r === idStr);
+            this.pathParams = { [resName]: this.Part(idIndex + 1) };
+        }
+        // this.hasPathParam = this.PartRes(2) === '{id}'; // this.eventResource.indexOf('{id}') >= 0;
+        // if (this.hasPathParam) this.pathParams = { [this.PartRes(2).replace(/{|}/g, '')]: this.Part(2) };
     }
 }
 
@@ -49,10 +56,10 @@ export class Operation {
     }
 
     public get GetClassName(): string {
-        return this.HasClassName? this.parts[0]: "";
+        return this.HasClassName ? this.parts[0] : "";
     }
     public get GetMethodName(): string {
-        return this.HasClassName? this.parts[1]: this.parts[0];
+        return this.HasClassName ? this.parts[1] : this.parts[0];
     }
 
     constructor(private operationName: string) {
@@ -61,7 +68,7 @@ export class Operation {
 
     public static extractOperations(openApiJson) {
         const operationNames: string[] = [];
-    
+
         for (const path in openApiJson.paths) {
             const pathObj = openApiJson.paths[path];
             for (const method in pathObj) {
@@ -71,7 +78,7 @@ export class Operation {
                 }
             }
         }
-    
+
         console.log('Operations:', operationNames);
         return operationNames;
     }
@@ -83,22 +90,22 @@ export class Operation {
  * @param context standard api context paramter
  */
 export const getAwsRequestEvent = (request: Request, context: Context) => {
-	const apiRequestAws = merge(apiRequestEmpty, {});
-	// apiRequestAws.headers["content-type"] = request.headers["content-type"];
+    const apiRequestAws = merge(apiRequestEmpty, {});
+    // apiRequestAws.headers["content-type"] = request.headers["content-type"];
     for (const [key, value] of Object.entries(request.headers)) {
         apiRequestAws.headers[key] = value;
     }
-	apiRequestAws.httpMethod = request.method;
-	// apiRequestAws.headers = req.headers;
-	apiRequestAws.path = request.path;
+    apiRequestAws.httpMethod = request.method;
+    // apiRequestAws.headers = req.headers;
+    apiRequestAws.path = request.path;
 
-	const pathParts = new Path();
-	pathParts.Parse(context.operation.path, request.path);
-	apiRequestAws.resource = context.operation.path;
-	apiRequestAws.pathParameters = pathParts.PathParams;
+    const pathParts = new Path();
+    pathParts.Parse(context.operation.path, request.path);
+    apiRequestAws.resource = context.operation.path;
+    apiRequestAws.pathParameters = pathParts.PathParams;
 
-	apiRequestAws.queryStringParameters = request.query;
+    apiRequestAws.queryStringParameters = request.query;
 
-	apiRequestAws.body = JSON.stringify(request.body);
-	return apiRequestAws;
+    apiRequestAws.body = JSON.stringify(request.body);
+    return apiRequestAws;
 };
