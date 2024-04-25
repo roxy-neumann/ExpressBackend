@@ -197,7 +197,7 @@ export class SwaggerExport {
                 const param = {
                     "name": key,
                     "in": "query",
-                    "required": searchParams.required.includes(key),
+                    "required": searchParams.required?.includes(key),
                     "schema": {
                         "type": props[key].type
                     }
