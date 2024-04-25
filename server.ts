@@ -7,8 +7,9 @@ import * as dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 
-import { Operation, Path, getAwsRequestEvent } from "./api_helper";
+import { Operation, OperationDef, getAwsAutherEvent, getAwsRequestEvent } from "./api_helper";
 import { SwaggerExport } from "./swagger/swagger_gen";
+import { APIGatewayProxyEvent } from "aws-lambda";
 
 // ::: Parse command line parameters (starting from #2, first two are system reserved) :::
 const srvFolder = process.argv[2];
@@ -17,6 +18,7 @@ const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
 const region = "il-central-1";
 const UploadFolder = "upload";
+const mainDir = process.env.X_PROJECTS_PATH || "E://dev/_Projects";
 dotenv.config();
 // ::: Read package info :::
 const jsonStr = fs.readFileSync(path.join(srvFolder, "package.json"));
@@ -79,6 +81,7 @@ envVars.BUCKET = `web${shortReg ? `.${shortReg}` : ""}.oxymoron-tech.com`;
 envVars.BUCKET_PATH = `${UploadFolder}/${packageJson.project}/${process.env.ENV ?? "local"}`;
 envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
 envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
+envVars.AUDIENCE = process.env.AUDIENCE ?? `${packageJson.project}-${packageJson.name}_api_${srvEnv}`;
 
 Object.keys(envVars).forEach((key) => {
 	process.env[key] = envVars[key];
@@ -90,10 +93,13 @@ if (fs.existsSync(envPath)) {
 	const env = dotenv.config({ path: envPath });
 	envVars = { ...envVars, ...env.parsed };
 }
-
 // ::: import service's source code :::
 const handlerPath = path.join(srvFolder, "src/index");
 const handlerModule = require(handlerPath);
+// ::: import auther's source code :::
+const autherType = packageJson.auth_type || 'Auth0';
+const autherPath = path.join(mainDir, 'Authorizers', autherType, "src/index");
+const autherModule = require(autherPath);
 
 if (swaggerRegen) {
 	const exp = new SwaggerExport(srvFolder);
@@ -103,32 +109,40 @@ if (swaggerRegen) {
 // ::: import swagger file from service's folder :::
 const openApiFilePath = path.join(srvFolder, "swagger", "oas30_templ.json");
 const openApiJson = require(openApiFilePath);
-openApiJson.servers.unshift({ url: `http://localhost:${port}` }); // add local server to enable local runs from UI
+openApiJson.servers.unshift({ url: `http://localhost:${port}` }); // add local server to enable local runs from Swagger UI
 
 // ::: generate basic API backend based on included swagger file :::
 const api = new OpenAPIBackend({ definition: openApiJson });
 // ::: extract operations names :::
-const operationNames: string[] = Operation.extractOperations(openApiJson);
+const operationNames: OperationDef[] = Operation.extractOperations(openApiJson);
 
 // ::: register operations extracted from swagger :::
 const registerApi = {};
-operationNames.forEach((operationName: string) => {
-	registerApi[operationName] = async (
-		context: Context,
-		request: Request,
-		res: Response,
-		data: any
-	) => {
+operationNames.forEach((operation: OperationDef) => {
+	registerApi[operation.Name] = async (context: Context, request: Request, res: Response, data: any) => {
 		try {
 			const event = getAwsRequestEvent(request, context);
+
 			if (data && data.length) {
 				// Convert rawData to a base64 string
 				event.body = data.toString("base64");
 				event.isBase64Encoded = true;
 			}
+			if (operation.IsAuth) {
+				const authEvent = getAwsAutherEvent(event);
+				authEvent.stageVariables = { DOMAIN: process.env.TOKEN_ISSUER, AUDIENCE: process.env.AUDIENCE };
+				const authResp = await autherModule.handler(authEvent);
+				console.log("Auth response:", authResp);
+				// find in authResp.policyDocument statements 'execute-api:Invoke' and check if it's 'Allow'
+				if (authResp.policyDocument.Statement[0].Effect !== "Allow") {
+					res.status(401).json({ error: "Unauthorized" });
+					return;
+				}
+				event.requestContext.authorizer = authResp.context;
+				event.requestContext.authorizer.principalId = authResp.principalId;
+			}
 			// ::: call service's root handler :::
 			const response = await handlerModule.handler(event);
-
 			if (response.headers.hasOwnProperty("Content-Type") && response.headers["Content-Type"] === "application/xml") {
 				res.status(response.statusCode).type("application/xml").send(response.body);
 			} else {
@@ -157,7 +171,6 @@ server.use(
 );
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
-server.use(express.text());
 server.use(express.raw());
 server.use((req, res) => {
 	let rawData = [];
@@ -169,7 +182,6 @@ server.use((req, res) => {
 		if (req.headers["content-type"]?.startsWith("multipart/form-data")) {
 			// Combine all chunks into a single buffer
 			const combinedData = Buffer.concat(rawData);
-
 			// Continue with handling the request using your API logic
 			api.handleRequest(req as Request, req, res, combinedData); // Pass combinedData as needed
 		}

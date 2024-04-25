@@ -1,6 +1,8 @@
 import type { Context, Request } from "openapi-backend";
 import merge from "deepmerge";
 import * as apiRequestEmpty from "./API_Event_empty.json";
+import * as apiAutherEmpty from "./API_Auther_Event_empty.json";
+import { APIGatewayProxyEvent, APIGatewayProxyEventQueryStringParameters, APIGatewayRequestAuthorizerEvent, APIGatewayTokenAuthorizerEvent } from 'aws-lambda';
 
 export class Path {
     private parts: string[];
@@ -65,23 +67,53 @@ export class Operation {
     constructor(private operationName: string) {
         this.parts = operationName.split('.');
     }
-
-    public static extractOperations(openApiJson) {
-        const operationNames: string[] = [];
+    
+    public static extractOperations(openApiJson: any) {
+        const operations: OperationDef[] = [];
 
         for (const path in openApiJson.paths) {
             const pathObj = openApiJson.paths[path];
             for (const method in pathObj) {
                 const operation = pathObj[method];
                 if (operation.operationId) {
-                    operationNames.push(operation.operationId);
+                    operations.push({
+                        Name: operation.operationId,
+                        Path: path,
+                        Method: method,
+                        IsAuth: operation.security && operation.security.length > 0
+                    });
                 }
             }
         }
 
-        console.log('Operations:', operationNames);
-        return operationNames;
+        console.log('Operations:', operations);
+        return operations;
     }
+}
+
+export interface OperationDef {
+    Name: string;
+    Path: string;
+    Method: string;
+    IsAuth: boolean;
+}
+
+export const getAwsAutherEvent = (proxyEvent: APIGatewayProxyEvent): APIGatewayRequestAuthorizerEvent => {
+    const authorizerEvent = merge(apiAutherEmpty, 
+        {
+            methodArn: proxyEvent.requestContext.identity.caller,
+            resource: proxyEvent.resource,
+            path: proxyEvent.path,
+            httpMethod: proxyEvent.httpMethod,
+            headers: proxyEvent.headers,
+            queryStringParameters: proxyEvent.queryStringParameters,
+            pathParameters: proxyEvent.pathParameters,
+            stageVariables: proxyEvent.stageVariables,
+            requestContext: proxyEvent.requestContext as any,
+        }
+    ) as APIGatewayRequestAuthorizerEvent;
+     
+    return authorizerEvent;
 }
 
 /**
@@ -89,22 +121,22 @@ export class Operation {
  * @param request standard api request paramter
  * @param context standard api context paramter
  */
-export const getAwsRequestEvent = (request: Request, context: Context) => {
-    const apiRequestAws = merge(apiRequestEmpty, {});
-    // apiRequestAws.headers["content-type"] = request.headers["content-type"];
+export const getAwsRequestEvent = (request: Request, context: Context): APIGatewayProxyEvent => {
+    const apiRequestAws = merge(apiRequestEmpty, {}) as APIGatewayProxyEvent;
     for (const [key, value] of Object.entries(request.headers)) {
-        apiRequestAws.headers[key] = value;
+        apiRequestAws.headers[key] = value.toString();
     }
     apiRequestAws.httpMethod = request.method;
-    // apiRequestAws.headers = req.headers;
-    apiRequestAws.path = request.path;
 
+    apiRequestAws.path = request.path;
     const pathParts = new Path();
     pathParts.Parse(context.operation.path, request.path);
     apiRequestAws.resource = context.operation.path;
     apiRequestAws.pathParameters = pathParts.PathParams;
 
-    apiRequestAws.queryStringParameters = request.query;
+    apiRequestAws.requestContext["operationName"] = context.operation.operationId;
+
+    apiRequestAws.queryStringParameters = request.query as APIGatewayProxyEventQueryStringParameters;
 
     apiRequestAws.body = JSON.stringify(request.body);
     return apiRequestAws;
