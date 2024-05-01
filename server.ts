@@ -6,89 +6,40 @@ import swaggerUi from "swagger-ui-express";
 import * as dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
-
 import { Operation, OperationDef, getAwsAutherEvent, getAwsRequestEvent } from "./api_helper";
-import { SwaggerExport } from "./swagger/swagger_gen";
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { FilesHelper, Env, NamesHelper, SwaggerGenerator, Consts } from "utils-shared";
 
 // ::: Parse command line parameters (starting from #2, first two are system reserved) :::
 const srvFolder = process.argv[2];
 const port = process.argv[3] || 4001;
 const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
-const region = "il-central-1";
-const UploadFolder = "upload";
+const env = srvEnv === 'local'? new Env() : new Env({name: srvEnv});
 const mainDir = process.env.X_PROJECTS_PATH || "E://dev/_Projects";
 dotenv.config();
 // ::: Read package info :::
-const jsonStr = fs.readFileSync(path.join(srvFolder, "package.json"));
-const packageJson = JSON.parse(jsonStr.toString());
+const packageJson = FilesHelper.getPackageJson(srvFolder);
+const namesHelper = new NamesHelper(packageJson.project, env);
 
-const regionShort = (region: string) => {
-	switch (region) {
-		case "us-east-1":
-		case "us-east-2":
-			return "us-e";
-		case "us-west-1":
-		case "us-west-2":
-			return "us-w";
-
-		case "af-south-1":
-			return "af";
-
-		case "ap-east-1":
-			return "ap-e";
-		case "ap-south-1":
-			return "ap-s";
-		case "ap-northeast-3":
-		case "ap-northeast-2":
-		case "ap-northeast-1":
-			return "ap-ne";
-		case "ap-southeast-1":
-		case "ap-southeast-2":
-			return "ap-se";
-
-		case "ca-central-1":
-			return "ca";
-
-		case "eu-central-1":
-		case "eu-west-1":
-		case "eu-west-2":
-		case "eu-west-3":
-		case "eu-north-1":
-		case "eu-south-1":
-			return "eu";
-
-		case "il-central-1":
-			return "il";
-		case "me-south-1":
-			return "me";
-		case "sa-east-1":
-			return "sa";
-		default:
-			return "";
-	}
-};
 // ::: Environment variables :::
 let envVars: any = {};
-const shortReg = regionShort(region);
 // ::: Generate default env vars :::
-envVars.DB_NAME = `${packageJson.project}-${srvEnv}`;
+envVars.DB_NAME = namesHelper.dbName(); //`${packageJson.project}-${env.Name}`;
 envVars.DB_TABLE = packageJson.main_entity;
-envVars.ENV = srvEnv;
-envVars.REGION = region;
-envVars.BUCKET = `web${shortReg ? `.${shortReg}` : ""}.oxymoron-tech.com`;
-envVars.BUCKET_PATH = `${UploadFolder}/${packageJson.project}/${process.env.ENV ?? "local"}`;
+envVars.ENV = env.Name;
+envVars.REGION = env.Region;
+envVars.BUCKET = Env.BucketName(env);
+envVars.BUCKET_PATH = namesHelper.bucketPath(); //`${UploadFolder}/${packageJson.project}/${env.Name}`;
 envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
 envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
-envVars.AUDIENCE = process.env.AUDIENCE ?? `${packageJson.project}-${packageJson.name}_api_${srvEnv}`;
+envVars.AUDIENCE = process.env.AUDIENCE ?? namesHelper.serviceApiName(packageJson.name); //`${packageJson.project}-${packageJson.name}_api_${env.Name}`;
 
 Object.keys(envVars).forEach((key) => {
 	process.env[key] = envVars[key];
 });
 
 // ::: if there is a .env file - read it :::
-const envPath = path.join(srvFolder, `.env.${srvEnv}`);
+const envPath = path.join(srvFolder, `.env.${env.Name}`);
 if (fs.existsSync(envPath)) {
 	const env = dotenv.config({ path: envPath });
 	envVars = { ...envVars, ...env.parsed };
@@ -101,14 +52,16 @@ const autherType = packageJson.auth_type || 'Auth0';
 const autherPath = path.join(mainDir, 'Authorizers', autherType, "src/index");
 const autherModule = require(autherPath);
 
+const swaggerJson = path.join(srvFolder, Consts.swaggerFolderName, `${Consts.swaggerFile}.json`);
 if (swaggerRegen) {
-	const exp = new SwaggerExport(srvFolder);
-	const resp = exp.Generate();
-	console.log(resp);
+	const swaggerGen = new SwaggerGenerator(packageJson, path.join(srvFolder, Consts.defaultModelsDir) );
+	const swaggerSpec = swaggerGen.Generate();
+
+	fs.writeFileSync(swaggerJson, JSON.stringify(swaggerSpec, null, 2));
+	console.log(`Swagger JSON generated in ${swaggerJson}`);
 }
 // ::: import swagger file from service's folder :::
-const openApiFilePath = path.join(srvFolder, "swagger", "oas30_templ.json");
-const openApiJson = require(openApiFilePath);
+const openApiJson = require(swaggerJson);
 openApiJson.servers.unshift({ url: `http://localhost:${port}` }); // add local server to enable local runs from Swagger UI
 
 // ::: generate basic API backend based on included swagger file :::
@@ -203,7 +156,7 @@ server.listen(port, () => {
 			: "";
 	console.log(`Running API ${srvDetails} at ${srvFolder}`);
 
-	console.log(`Variables of [${srvEnv}] environment:`);
+	console.log(`Variables of [${env.Name}] environment:`);
 	Object.keys(envVars).forEach((key) => console.log(`${key}: ${envVars[key]}`));
 
 	console.log(`Listening on ${mainUrl}`);
