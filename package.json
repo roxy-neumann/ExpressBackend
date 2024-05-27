@@ -19,6 +19,7 @@
 		"start_DirPod_eps_mon": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\DirectPodcast\\BE-episodes' 4072 local true",
 		"start_DirPod_fileMng_mon": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\DirectPodcast\\BE-file-mng' 4073 local",
 		"start_DirPod_feeds_mon": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\DirectPodcast\\BE-feeds' 4075 local",
+		"start_DirPod_proxy_mon": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\DirectPodcast\\BE-proxy' 4077 local",
 		"___start_Casino___": "--- Commands for simple proxy API start for AnyPodcast ----------------------------------------------",
 		"start_Casino_local": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\CasinoVision\\BE' 4071 local",
 		"start_Casino_dev": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\CasinoVision\\BE' 4071 dev",
