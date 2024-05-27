@@ -14,7 +14,9 @@ const srvFolder = process.argv[2];
 const port = process.argv[3] || 4001;
 const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
-const env = srvEnv === 'local'? new Env() : new Env({name: srvEnv});
+const env = new Env();
+env.Name = (srvEnv === 'local'?  "local": srvEnv);
+
 const mainDir = process.env.X_PROJECTS_PATH || "E://dev/_Projects";
 dotenv.config();
 // ::: Read package info :::
