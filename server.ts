@@ -77,7 +77,6 @@ operationNames.forEach((operation: OperationDef) => {
 	registerApi[operation.Name] = async (context: Context, request: Request, res: Response, data: any) => {
 		try {
 			const event = getAwsRequestEvent(request, context);
-
 			if (data && data.length) {
 				// Convert rawData to a base64 string
 				event.body = data.toString("base64");
