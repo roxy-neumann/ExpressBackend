@@ -35,7 +35,7 @@ envVars.BUCKET_PATH = namesHelper.bucketPath(); //`${UploadFolder}/${packageJson
 envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
 envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
 envVars.AUDIENCE = process.env.AUDIENCE ?? namesHelper.serviceApiName(packageJson.name); //`${packageJson.project}-${packageJson.name}_api_${env.Name}`;
-envVars.TOKEN_ISSUER = process.env.TOKEN_ISSUER ?? `${namesHelper.subDomainName()}.eu.auth0.com/`; 
+envVars.TOKEN_ISSUER = process.env.TOKEN_ISSUER ?? `${namesHelper.subDomainName()}.eu.auth0.com`; 
 
 Object.keys(envVars).forEach((key) => {
 	process.env[key] = envVars[key];
