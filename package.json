@@ -5,6 +5,10 @@
     "main": "server.js",
     "scripts": {
         "compile": "rm -rf dist/* && tsc",
+		"___start_SyncRoX___": "--- Commands for simple proxy API start for SyncRoX ----------------------------------------------",
+		"start_SyncRoX_channels": "ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Channel' 4101 local",
+		"start_SyncRoX_items": "ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Item' 4102 local",
+
         "___start_AnyPod___": "--- Commands for simple proxy API start for AnyPodcast ----------------------------------------------",
         "start_AnyPod_user": "ts-node server.ts 'E:\\dev\\_Projects\\AnyPodcast\\srv-users' 4060 local",
         "start_AnyPod_pods": "ts-node server.ts 'E:\\dev\\_Projects\\AnyPodcast\\BE-podcasts' 4061 local",
