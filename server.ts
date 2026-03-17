@@ -8,21 +8,22 @@ import path from "path";
 import fs from "fs";
 import { Operation, OperationDef, getAwsAutherEvent, getAwsRequestEvent } from "./api_helper";
 import { FilesHelper, Env, NamesHelper, SwaggerGenerator, Consts } from "utils-shared";
+import https from 'https';
 
 // ::: Parse command line parameters (starting from #2, first two are system reserved) :::
 const srvFolder = process.argv[2];
-const port = process.argv[3] || 4001;
+const ip = process.argv[3];
 const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
 const env = new Env();
 env.Name = (srvEnv === 'local'?  "local": srvEnv);
 
-const mainDir = process.env.X_PROJECTS_PATH || "E://dev/_Projects";
+const mainDir = process.env.X_PROJECTS_PATH || "C://dev/_Projects";
 dotenv.config();
 // ::: Read package info :::
 const packageJson = FilesHelper.getPackageJson(srvFolder);
 const namesHelper = new NamesHelper(packageJson.project, env);
-
+const domain = namesHelper.serviceDomainName(packageJson.name, '');
 // ::: Environment variables :::
 let envVars: any = {};
 // ::: Generate default env vars :::
@@ -65,7 +66,7 @@ if (swaggerRegen) {
 }
 // ::: import swagger file from service's folder :::
 const openApiJson = require(swaggerJson);
-openApiJson.servers.unshift({ url: `http://localhost:${port}` }); // add local server to enable local runs from Swagger UI
+openApiJson.servers.unshift({ url: `http://${ip}` }); // add local server to enable local runs from Swagger UI
 
 // ::: generate basic API backend based on included swagger file :::
 const api = new OpenAPIBackend({ definition: openApiJson });
@@ -146,12 +147,19 @@ server.use((req, res) => {
 	}
 });
 
-const mainUrl = `http://localhost:${port}`;
-const mainUrlSwagger = `http://localhost:${port}/api-docs`;
-server.listen(port, () => {
-	console.log(
-		"::: Middleware API for AWS Lambda microservice ::::::::::::::::::::::::: Oxymoron Tech ::: 2024 :::"
-	);
+const options = {
+	key: fs.readFileSync(`${mainDir}/_cert/_wildcard.l.test+1-key.pem`),
+	cert: fs.readFileSync(`${mainDir}/_cert/_wildcard.l.test+1.pem`)
+};
+
+const port = 443;
+// const mainUrl = `https://${ip}`;
+const mainUrl = `https://${domain}`;
+const mainUrlSwagger = `${mainUrl}/api-docs`;
+
+https.createServer(options, server).listen(port, ip, () => {
+// server.listen(port, ip, () => {
+	console.log("::: Middleware API for AWS Lambda microservice ::::::::::::::::::::::::: Oxymoron Tech ::: 2024 :::");
 	const srvDetails =
 		packageJson.project && packageJson.name
 			? `for [${packageJson.project} | ${packageJson.name}]`

@@ -17,11 +17,11 @@ if not defined srvFolder (
 
 set service_path=%projFolder%%srvFolder%
 
-set port=%3
-if not defined port (
-    echo "::: Service port"
-    echo "::: Use 'local' for local development deploy. Use real port name (main, master, dev...) of GH deploy if you want to check or destroy it"
-    set /p port="[e.g. local]=> "
+set ip=%3
+if not defined ip (
+    echo "::: Service IP"
+    echo "::: Use assgined IP from hosts file"
+    set /p ip="[e.g. local]=> "
 )
 
 set env=%4
@@ -36,7 +36,7 @@ set swagger=%6
 
 echo ::: Initial Parameters :::::::::::::::::::::::::::::::::::
 echo Service Folder: %service_path%
-echo Port: %port%
+echo IP: %ip%
 echo Env: %env%
 echo Nodemon: %nodemon%
 echo Swagger re-generation: %swagger%
@@ -50,9 +50,9 @@ if not defined swagger (
 )
 echo Delay: %delay%
 
-rem @start /B cmd /c "open_url.bat %port% %delay%"
+rem @start /B cmd /c "open_url.bat %ip% %delay%"
 if "%nodemon%"=="true" (
-    nodemon -w %service_path%\src %watch_option% -x ts-node server.ts %service_path% %port% %env% %swagger%
+    nodemon -w %service_path%\src %watch_option% -x ts-node server.ts %service_path% %ip% %env% %swagger%
 ) else (
-    ts-node server.ts %service_path% %port% %env% %swagger%
+    ts-node server.ts %service_path% %ip% %env% %swagger%
 )
