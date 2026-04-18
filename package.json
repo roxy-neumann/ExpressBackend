@@ -6,10 +6,12 @@
     "scripts": {
         "compile": "rm -rf dist/* && tsc",
 		"___start_SyncRoX___": "--- Commands for simple proxy API start for SyncRoX ----------------------------------------------",
-		"start_SyncRoX_channels": "ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Channel' 127.10.4.1 local true",
-		"start_SyncRoX_items": "ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Item' 127.10.4.2 local true",
-		"start_SyncRoX_fileMng": "ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-file-mng' 127.10.4.4 local",
+		"start_SyncRoX_channels": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Channel' 127.10.4.1 local true",
+		"start_SyncRoX_items": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Item' 127.10.4.3 local true",
+		"start_SyncRoX_fileMng": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-file-mng' 127.10.4.4 local",
 		"start_SyncRoX_device": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-device' 127.10.4.5 local true",
+		"start_SyncRoX_path": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-localpath' 127.10.4.6 local true",
+		"start_SyncRoX_query": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-query' 127.10.4.8 local",
 
         "___start_DirPod_dev___": "--- Commands to run proxy API start for DirPod under nodemon --------------------------------",
 		"start_DirPod_pods_mon": "nodemon --exec ts-node server.ts 'c:\\dev\\_Projects\\DirectPodcast\\BE-podcasts' 4071 local true",
@@ -38,7 +40,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"utils-shared": "file:../ServicesUtils/shared/utils-shared-0.0.1.tgz",
+		"utils-shared": "file:../ServicesUtils/shared/utils-shared-0.0.2.tgz",
 		"cors": "^2.8.5",
 		"deepmerge": "^4.3.1",
 		"dotenv": "^16.3.1",

@@ -8,14 +8,18 @@
             "type": "node",
             "request": "launch",
             "name": "Launch TS File",
+            "sourceMaps": true,
             "program": "${file}",
             "preLaunchTask": "npm: compile",
-            "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
+            "sourceMaps": true,
             "skipFiles": [
                 "<node_internals>/**"
             ],
