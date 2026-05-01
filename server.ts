@@ -27,15 +27,19 @@ const domain = namesHelper.serviceDomainName(packageJson.name, '');
 // ::: Environment variables :::
 let envVars: any = {};
 // ::: Generate default env vars :::
-envVars.DB_NAME = namesHelper.dbName(); //`${packageJson.project}-${env.Name}`;
-envVars.DB_TABLE = packageJson.main_entity;
 envVars.ENV = env.Name;
 envVars.REGION = env.Region;
 envVars.BUCKET = Env.BucketName(env);
-envVars.BUCKET_PATH = namesHelper.bucketPath(); //`${UploadFolder}/${packageJson.project}/${env.Name}`;
+envVars.BUCKET_PATH = namesHelper.bucketPath();
+
+// ::: DB connection details - can be overridden by env vars or .env file :::
+envVars.DB_NAME = namesHelper.dbName();
+envVars.DB_TABLE = packageJson.main_entity;
+envVars.DB_CLUSTER = process.env.MONGO_CLUSTER ?? `elementx.wg7wcp4.mongodb.net`;
 envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
 envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
-envVars.AUDIENCE = process.env.AUDIENCE ?? namesHelper.serviceApiName(packageJson.name); //`${packageJson.project}-${packageJson.name}_api_${env.Name}`;
+
+envVars.AUDIENCE = process.env.AUDIENCE ?? namesHelper.serviceApiName(packageJson.name);
 envVars.TOKEN_ISSUER = process.env.TOKEN_ISSUER ?? `${namesHelper.subDomainName()}.eu.auth0.com`; 
 
 Object.keys(envVars).forEach((key) => {
