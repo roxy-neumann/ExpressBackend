@@ -7,6 +7,7 @@
         "compile": "rm -rf dist/* && tsc",
 		"___start_SyncRoX___": "--- Commands for simple proxy API start for SyncRoX ----------------------------------------------",
 		"start_SyncRoX_channels": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Channel' 127.10.4.1 local true",
+		"start_SyncRoX_projects": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Project' 127.10.4.2 local true",
 		"start_SyncRoX_items": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Item' 127.10.4.3 local true",
 		"start_SyncRoX_fileMng": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-file-mng' 127.10.4.4 local",
 		"start_SyncRoX_device": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-device' 127.10.4.5 local true",

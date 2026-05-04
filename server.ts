@@ -16,7 +16,7 @@ const ip = process.argv[3];
 const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
 const env = new Env();
-env.Name = (srvEnv === 'local'?  "local": srvEnv);
+env.Name = (srvEnv === 'local' ? "local" : srvEnv);
 
 const mainDir = process.env.X_PROJECTS_PATH || "C://dev/_Projects";
 dotenv.config();
@@ -40,7 +40,7 @@ envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
 envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
 
 envVars.AUDIENCE = process.env.AUDIENCE ?? namesHelper.serviceApiName(packageJson.name);
-envVars.TOKEN_ISSUER = process.env.TOKEN_ISSUER ?? `${namesHelper.subDomainName()}.eu.auth0.com`; 
+envVars.TOKEN_ISSUER = process.env.TOKEN_ISSUER ?? `${namesHelper.subDomainName()}.eu.auth0.com`;
 
 Object.keys(envVars).forEach((key) => {
 	process.env[key] = envVars[key];
@@ -62,7 +62,7 @@ const autherModule = require(autherPath);
 
 const swaggerJson = path.join(srvFolder, Consts.swaggerFolderName, `${Consts.swaggerFile}.json`);
 if (swaggerRegen) {
-	const swaggerGen = new SwaggerGenerator(packageJson, path.join(srvFolder, Consts.defaultModelsDir) );
+	const swaggerGen = new SwaggerGenerator(packageJson, path.join(srvFolder, Consts.defaultModelsDir));
 	const swaggerSpec = swaggerGen.Generate();
 
 	fs.writeFileSync(swaggerJson, JSON.stringify(swaggerSpec, null, 2));
@@ -76,11 +76,13 @@ openApiJson.servers.unshift({ url: `http://${ip}` }); // add local server to ena
 const api = new OpenAPIBackend({ definition: openApiJson });
 // ::: extract operations names :::
 const operationNames: OperationDef[] = Operation.extractOperations(openApiJson);
+console.log('Operations:', operationNames);
 
 // ::: register operations extracted from swagger :::
-const registerApi = {};
+// ::: lambdaHandlers are stored separately so validationFail can invoke them after filtering :::
+const lambdaHandlers: Record<string, (context: Context, request: Request, res: Response, data?: any) => Promise<void>> = {};
 operationNames.forEach((operation: OperationDef) => {
-	registerApi[operation.Name] = async (context: Context, request: Request, res: Response, data: any) => {
+	lambdaHandlers[operation.Name] = async (context: Context, request: Request, res: Response, data: any) => {
 		try {
 			const event = getAwsRequestEvent(request, context);
 			if (data && data.length) {
@@ -114,6 +116,48 @@ operationNames.forEach((operation: OperationDef) => {
 		}
 	};
 });
+
+// ::: AWS API Gateway validator configs from swagger :::
+const awsValidatorConfigs: Record<string, { validateRequestBody: boolean; validateRequestParameters: boolean }> =
+	openApiJson["x-amazon-apigateway-request-validators"] || {};
+
+// ::: validationFail mimics AWS API Gateway request validation :::
+// ::: Respects x-amazon-apigateway-request-validator per operation — body-only, params-only, or both :::
+const registerApi: any = {
+	...lambdaHandlers,
+	validationFail: async (context: Context, request: Request, res: Response, data: any) => {
+		const validatorKey = context.operation?.["x-amazon-apigateway-request-validator"] as string | undefined;
+		const validatorCfg = validatorKey ? awsValidatorConfigs[validatorKey] : null;
+		const allErrors = (context.validation.errors || []) as any[];
+
+		if (!validatorCfg) {
+			// No AWS validator defined for this operation — pass through to Lambda (AWS wouldn't block it)
+			const handler = lambdaHandlers[context.operation?.operationId];
+			if (handler) 
+				return handler(context, request, res, data);
+
+			return res.status(400).json({ error: "Validation failed", details: allErrors });
+		}
+
+		// ::: Filter AJV errors to only those AWS would enforce :::
+		const relevantErrors = allErrors.filter((err) => {
+			const isBodyError = (err.schemaPath as string)?.includes("/requestBody") || (err.instancePath as string)?.startsWith("/requestBody");
+			return isBodyError ? validatorCfg.validateRequestBody : validatorCfg.validateRequestParameters;
+		});
+
+		if (relevantErrors.length === 0) {
+			// Errors are outside this operation's validator scope — pass through to Lambda
+			const handler = lambdaHandlers[context.operation?.operationId];
+			if (handler) return handler(context, request, res, data);
+		}
+
+		console.warn(`[Validation] ${context.operation?.operationId} failed (${validatorKey}):`, relevantErrors);
+		res.status(400).json({
+			error: "Validation failed",
+			details: relevantErrors.map((e) => ({ path: e.instancePath, message: e.message })),
+		});
+	},
+};
 
 api.register(registerApi);
 api.init();
@@ -162,7 +206,7 @@ const mainUrl = `https://${domain}`;
 const mainUrlSwagger = `${mainUrl}/api-docs`;
 
 https.createServer(options, server).listen(port, ip, () => {
-// server.listen(port, ip, () => {
+	// server.listen(port, ip, () => {
 	console.log("::: Middleware API for AWS Lambda microservice ::::::::::::::::::::::::: Oxymoron Tech ::: 2024 :::");
 	const srvDetails =
 		packageJson.project && packageJson.name

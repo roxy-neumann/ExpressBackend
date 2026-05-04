@@ -86,7 +86,6 @@ export class Operation {
             }
         }
 
-        console.log('Operations:', operations);
         return operations;
     }
 }
