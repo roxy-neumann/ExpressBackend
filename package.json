@@ -5,6 +5,10 @@
     "main": "server.js",
     "scripts": {
         "compile": "rm -rf dist/* && tsc",
+		"___start_MateReal___": "--- Commands for simple proxy API start for MateReal ----------------------------------------------",
+		"start_MateReal_license": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\MateReal\\BE-License' 127.11.4.1 local true",
+		"start_MateReal_fileMng": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\MateReal\\BE-FileMng' 127.11.4.2 local",
+
 		"___start_SyncRoX___": "--- Commands for simple proxy API start for SyncRoX ----------------------------------------------",
 		"start_SyncRoX_channels": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Channel' 127.10.4.1 local true",
 		"start_SyncRoX_projects": "nodemon --exec ts-node server.ts 'E:\\dev\\_Projects\\SyncRoX\\BE-Project' 127.10.4.2 local true",

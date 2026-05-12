@@ -17,6 +17,8 @@ const srvEnv = process.argv[4];
 const swaggerRegen = process.argv[5];
 const env = new Env();
 env.Name = (srvEnv === 'local' ? "local" : srvEnv);
+const API_VALIDATIONS_ENABLED = false;
+const CLOUD_REQUEST_DELAY_MS = 0;
 
 const mainDir = process.env.X_PROJECTS_PATH || "C://dev/_Projects";
 dotenv.config();
@@ -73,7 +75,7 @@ const openApiJson = require(swaggerJson);
 openApiJson.servers.unshift({ url: `http://${ip}` }); // add local server to enable local runs from Swagger UI
 
 // ::: generate basic API backend based on included swagger file :::
-const api = new OpenAPIBackend({ definition: openApiJson });
+const api = new OpenAPIBackend({ definition: openApiJson, validate: API_VALIDATIONS_ENABLED });
 // ::: extract operations names :::
 const operationNames: OperationDef[] = Operation.extractOperations(openApiJson);
 console.log('Operations:', operationNames);
@@ -126,6 +128,14 @@ const awsValidatorConfigs: Record<string, { validateRequestBody: boolean; valida
 const registerApi: any = {
 	...lambdaHandlers,
 	validationFail: async (context: Context, request: Request, res: Response, data: any) => {
+		if (!API_VALIDATIONS_ENABLED) {
+			const handler = lambdaHandlers[context.operation?.operationId];
+			if (handler)
+				return handler(context, request, res, data);
+
+			return res.status(400).json({ error: "Validation failed", details: context.validation?.errors || [] });
+		}
+
 		const validatorKey = context.operation?.["x-amazon-apigateway-request-validator"] as string | undefined;
 		const validatorCfg = validatorKey ? awsValidatorConfigs[validatorKey] : null;
 		const allErrors = (context.validation.errors || []) as any[];
@@ -164,6 +174,9 @@ api.init();
 
 const server = express();
 server.use(cors());
+server.use((_req, _res, next) => {
+	setTimeout(() => next(), CLOUD_REQUEST_DELAY_MS);
+});
 server.use(express.static("public")); // serve custom CSS
 server.use(
 	"/api-docs",
@@ -216,6 +229,7 @@ https.createServer(options, server).listen(port, ip, () => {
 
 	console.log(`Variables of [${env.Name}] environment:`);
 	Object.keys(envVars).forEach((key) => console.log(`${key}: ${envVars[key]}`));
+	console.log(`API validations: ${API_VALIDATIONS_ENABLED ? "enabled" : "disabled"}`);
 
 	console.log(`Listening on ${mainUrl}`);
 	console.log(`Swagger UI on ${mainUrlSwagger}`);
