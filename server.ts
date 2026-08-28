@@ -12,9 +12,8 @@ import https from 'https';
 
 // ::: Parse command line parameters (starting from #2, first two are system reserved) :::
 const srvFolder = process.argv[2];
-const ip = process.argv[3];
-const srvEnv = process.argv[4];
-const swaggerRegen = process.argv[5];
+const srvEnv = process.argv[3];
+const swaggerRegen = process.argv[4];
 const env = new Env();
 env.Name = (srvEnv === 'local' ? "local" : srvEnv);
 const API_VALIDATIONS_ENABLED = false;
@@ -72,7 +71,7 @@ if (swaggerRegen) {
 }
 // ::: import swagger file from service's folder :::
 const openApiJson = require(swaggerJson);
-openApiJson.servers.unshift({ url: `http://${ip}` }); // add local server to enable local runs from Swagger UI
+openApiJson.servers.unshift({ url: `http://${domain}` }); // add local server to enable local runs from Swagger UI
 
 // ::: generate basic API backend based on included swagger file :::
 const api = new OpenAPIBackend({ definition: openApiJson, validate: API_VALIDATIONS_ENABLED });
@@ -214,12 +213,10 @@ const options = {
 };
 
 const port = 443;
-// const mainUrl = `https://${ip}`;
 const mainUrl = `https://${domain}`;
 const mainUrlSwagger = `${mainUrl}/api-docs`;
 
-https.createServer(options, server).listen(port, ip, () => {
-	// server.listen(port, ip, () => {
+https.createServer(options, server).listen(port, domain, () => {
 	console.log("::: Middleware API for AWS Lambda microservice ::::::::::::::::::::::::: Oxymoron Tech ::: 2024 :::");
 	const srvDetails =
 		packageJson.project && packageJson.name
