@@ -40,8 +40,11 @@ envVars.DB_CLUSTER = process.env.MONGO_CLUSTER ?? `elementx.wg7wcp4.mongodb.net`
 envVars.DB_USER = process.env.MONGO_USER ?? `admin`;
 envVars.DB_PASS = process.env.MONGO_PASS ?? `123123`;
 
-envVars.AUDIENCE = process.env.AUDIENCE ?? namesHelper.serviceApiName(packageJson.name);
+// API GW stage variables
+// envVars.AUDIENCE = process.env.AUDIENCE ?? namesHelper.serviceApiName(packageJson.name);
+envVars.AUDIENCE = process.env.AUDIENCE ?? namesHelper.mainApiName();
 envVars.TOKEN_ISSUER = process.env.TOKEN_ISSUER ?? `${namesHelper.subDomainName()}.eu.auth0.com`;
+envVars.SERVICE_NAME = packageJson.name;
 
 Object.keys(envVars).forEach((key) => {
 	process.env[key] = envVars[key];
@@ -93,7 +96,7 @@ operationNames.forEach((operation: OperationDef) => {
 			}
 			if (operation.IsAuth) {
 				const authEvent = getAwsAutherEvent(event);
-				authEvent.stageVariables = { DOMAIN: process.env.TOKEN_ISSUER, AUDIENCE: process.env.AUDIENCE };
+				authEvent.stageVariables = { DOMAIN: process.env.TOKEN_ISSUER, AUDIENCE: process.env.AUDIENCE, SERVICE_NAME: process.env.SERVICE_NAME };
 				const authResp = await autherModule.handler(authEvent);
 				console.log("Auth response:", authResp);
 				// find in authResp.policyDocument statements 'execute-api:Invoke' and check if it's 'Allow'
