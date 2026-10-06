@@ -46,7 +46,8 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"utils-shared": "file:../ServicesUtils/shared/utils-shared-0.0.2.tgz",
+		"utils-shared": "file:../ServicesUtils/shared/utils-shared-0.0.3.tgz",
+		"utils-shared-be": "file:../ServicesUtils/shared-be/utils-shared-be-0.0.1.tgz",
 		"cors": "^2.8.5",
 		"deepmerge": "^4.3.1",
 		"dotenv": "^16.3.1",

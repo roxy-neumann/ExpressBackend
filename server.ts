@@ -7,7 +7,8 @@ import * as dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import { Operation, OperationDef, getAwsAutherEvent, getAwsRequestEvent } from "./api_helper";
-import { FilesHelper, Env, NamesHelper, SwaggerGenerator, Consts } from "utils-shared";
+import { Env, NamesHelper,  Consts } from "utils-shared";
+import { FilesHelper, SwaggerGenerator } from "utils-shared-be";
 import https from 'https';
 
 // ::: Parse command line parameters (starting from #2, first two are system reserved) :::
