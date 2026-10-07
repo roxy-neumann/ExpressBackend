@@ -26,6 +26,7 @@ if not defined env (
 
 set nodemon=%4
 set swagger=%5
+set localPort=%6
 
 echo ::: Initial Parameters :::::::::::::::::::::::::::::::::::
 echo Service Folder: %service_path%
@@ -43,7 +44,7 @@ if not defined swagger (
 echo Delay: %delay%
 
 if "%nodemon%"=="true" (
-    nodemon -w %service_path%\src %watch_option% -x ts-node server.ts %service_path% %env% %swagger%
+    nodemon -w %service_path%\src %watch_option% -x ts-node server.ts %service_path% %env% %swagger% %localPort%
 ) else (
-    ts-node server.ts %service_path% %env% %swagger%
+    ts-node server.ts %service_path% %env% %swagger% %localPort%
 )

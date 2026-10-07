@@ -7,14 +7,16 @@ import * as dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import { Operation, OperationDef, getAwsAutherEvent, getAwsRequestEvent } from "./api_helper";
-import { Env, NamesHelper,  Consts } from "utils-shared";
+import { Env, NamesHelper, Consts } from "utils-shared";
 import { FilesHelper, SwaggerGenerator } from "utils-shared-be";
 import https from 'https';
 
 // ::: Parse command line parameters (starting from #2, first two are system reserved) :::
 const srvFolder = process.argv[2];
 const srvEnv = process.argv[3];
-const swaggerRegen = process.argv[4];
+const swaggerRegen: boolean = process.argv[4] === 'true';
+const localPort: number = parseInt(process.argv[5], 10);
+
 const env = new Env();
 env.Name = (srvEnv === 'local' ? "local" : srvEnv);
 const API_VALIDATIONS_ENABLED = false;
@@ -25,7 +27,8 @@ dotenv.config();
 // ::: Read package info :::
 const packageJson = FilesHelper.getPackageJson(srvFolder);
 const namesHelper = new NamesHelper(packageJson.project, env);
-const domain = namesHelper.serviceDomainName(packageJson.name, '');
+let domain = namesHelper.serviceDomainName(packageJson.name, '');
+
 // ::: Environment variables :::
 let envVars: any = {};
 // ::: Generate default env vars :::
@@ -146,7 +149,7 @@ const registerApi: any = {
 		if (!validatorCfg) {
 			// No AWS validator defined for this operation — pass through to Lambda (AWS wouldn't block it)
 			const handler = lambdaHandlers[context.operation?.operationId];
-			if (handler) 
+			if (handler)
 				return handler(context, request, res, data);
 
 			return res.status(400).json({ error: "Validation failed", details: allErrors });
@@ -211,27 +214,36 @@ server.use((req, res) => {
 	}
 });
 
-const options = {
+const options = localPort ? {} : {
 	key: fs.readFileSync(`${mainDir}/_cert/_wildcard.l.test+1-key.pem`),
 	cert: fs.readFileSync(`${mainDir}/_cert/_wildcard.l.test+1.pem`)
 };
 
-const port = 443;
-const mainUrl = `https://${domain}`;
-const mainUrlSwagger = `${mainUrl}/api-docs`;
 
-https.createServer(options, server).listen(port, domain, () => {
-	console.log("::: Middleware API for AWS Lambda microservice ::::::::::::::::::::::::: Oxymoron Tech ::: 2024 :::");
-	const srvDetails =
-		packageJson.project && packageJson.name
-			? `for [${packageJson.project} | ${packageJson.name}]`
-			: "";
-	console.log(`Running API ${srvDetails} at ${srvFolder}`);
+if (localPort) {
+	const host = 'localhost';
+	server.listen(localPort, host, () => {
+		console.log(`Server is running at http://${host}:${localPort}`);
+		console.log(`Swagger Doc at http://${host}:${localPort}/api-docs`);
+	});
+} else {
+	const port = 443;
+	const mainUrl = `https://${domain}`;
+	const mainUrlSwagger = `${mainUrl}/api-docs`;
 
-	console.log(`Variables of [${env.Name}] environment:`);
-	Object.keys(envVars).forEach((key) => console.log(`${key}: ${envVars[key]}`));
-	console.log(`API validations: ${API_VALIDATIONS_ENABLED ? "enabled" : "disabled"}`);
+	https.createServer(options, server).listen(port, domain, () => {
+		console.log("::: Middleware API for AWS Lambda microservice ::::::::::::::::::::::::: Oxymoron Tech ::: 2024 :::");
+		const srvDetails =
+			packageJson.project && packageJson.name
+				? `for [${packageJson.project} | ${packageJson.name}]`
+				: "";
+		console.log(`Running API ${srvDetails} at ${srvFolder}`);
 
-	console.log(`Listening on ${mainUrl}`);
-	console.log(`Swagger UI on ${mainUrlSwagger}`);
-});
+		console.log(`Variables of [${env.Name}] environment:`);
+		Object.keys(envVars).forEach((key) => console.log(`${key}: ${envVars[key]}`));
+		console.log(`API validations: ${API_VALIDATIONS_ENABLED ? "enabled" : "disabled"}`);
+
+		console.log(`Listening on ${mainUrl}`);
+		console.log(`Swagger UI on ${mainUrlSwagger}`);
+	});
+}
